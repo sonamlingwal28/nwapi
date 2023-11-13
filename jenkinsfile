@@ -42,7 +42,7 @@ pipeline {
           dir('test-api/__tests__') {
       echo "'${env.PATH}'"
     sh "npm install"
-    sh "npm run test:INT"
+    sh "npm run test:DEV"
                     } 
           //execE2Etest('')
           
@@ -56,7 +56,7 @@ pipeline {
     always {
       publishExecutionReport("test-report.html", "Report Detail")
       mail to: "${params.STATUS_EMAIL}",
-          subject: "Jenkins Build ${currentBuild.currentResult}: eMON Test results",
+          subject: "Jenkins Build ${currentBuild.currentResult}: NW API Test results",
           body: "Build no: ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}\nExecution Report published at: ${env.BUILD_URL}ExecutionReport\n\n\nCheers,\nAutomation Team"
     }
   }
@@ -149,7 +149,7 @@ class ContextSettings implements Serializable {
 
     ContextSettings(env) {
         this.branchName                 = env.BRANCH_NAME.replaceAll('/', '-')
-        this.application                = "emon"
+        this.application                = "NW API"
         this.version                    = "v1"
         this.applicationVersion         = "${this.branchName}-${env.BUILD_NUMBER}"
         this.changeSetName              = "${this.branchName}-${env.BUILD_NUMBER}".replaceAll("\\.", '-')

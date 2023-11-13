@@ -1,0 +1,60 @@
+{
+	"dev": {
+		"auth": {
+			"url": "https://sterling-services-int.auth.us-east-1.amazoncognito.com/token",
+			"body": "grant_type=client_credentials",
+			"basicAuthorization": "a3c231a386c0e4b42e3defc434ec790e6106d2f1f94f5f048e89ff82292972e638daf60bf1418cbb6d3089c729bd79582da385f769efa15b2082be267b768bb9e14fd144c6b8baefa6c7eb534551e182ebb3876529efeb96fcca94bb7cd110f5b159987a5973d2b5f39c44c5de02e68b9b200893c234e181502142229d6f85829a6aaf6d29d0686568e927dbf8b4613f37fc293f02913382a9db028fe53b342597f05b9c7b3ea6bf5c4779241562aea9e44e1f3d203a0a7c435f7c225bbb865cbfff19948e24baf0318f17a7e6d1",
+			"headers": {
+				"authorization": "${headerToken}",
+				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Length": "29",
+				"Host": "sterling-services-int.auth.us-east-1.amazoncognito.com",
+				"Accept": "*/*",
+				"Accept-Encoding": "gzip, deflate, br",
+				"Cookie": "XSRF-TOKEN=5eaa86a7-1fc0-4047-b788-0576ed6201c5"
+			}
+		},
+		"baseURI": "https://us-nationwide.dev.backgroundcheck.com/v1",
+		"healthURL": "https://us-nationwide.dev.backgroundcheck.com/v1/health",
+		"healthDeepURL": "https://us-nationwide.dev.backgroundcheck.com/v1/health?deep=true"
+	},
+	
+	"int": {
+		"auth": {
+			"url": "https://sterling-services-int.auth.us-east-1.amazoncognito.com/token",
+			"body": "grant_type=client_credentials",
+			"basicAuthorization": "a3c231a386c0e4b42e3defc434ec790e6106d2f1f94f5f048e89ff82292972e638daf60bf1418cbb6d3089c729bd79582da385f769efa15b2082be267b768bb9e14fd144c6b8baefa6c7eb534551e182ebb3876529efeb96fcca94bb7cd110f5b159987a5973d2b5f39c44c5de02e68b9b200893c234e181502142229d6f85829a6aaf6d29d0686568e927dbf8b4613f37fc293f02913382a9db028fe53b342597f05b9c7b3ea6bf5c4779241562aea9e44e1f3d203a0a7c435f7c225bbb865cbfff19948e24baf0318f17a7e6d1",
+			"headers": {
+				"authorization": "${headerToken}",
+				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Length": "29",
+				"Host": "sterling-services-int.auth.us-east-1.amazoncognito.com",
+				"Accept": "*/*",
+				"Accept-Encoding": "gzip, deflate, br",
+				"Cookie": "XSRF-TOKEN=5eaa86a7-1fc0-4047-b788-0576ed6201c5"
+			}
+		},
+		"baseURI": "https://us-nationwide.int.backgroundcheck.com/v1",
+		"healthURL": "https://us-nationwide.int.backgroundcheck.com/v1/health",
+		"healthDeepURL": "https://us-nationwide.int.backgroundcheck.com/v1/health?deep=true"
+	},
+	"prod": {
+		"auth": {
+			"url": "https://sterling-services-int.auth.us-east-1.amazoncognito.com/token",
+			"body": "grant_type=client_credentials",
+			"basicAuthorization": "a3c231a386c0e4b42e3defc434ec790e6106d2f1f94f5f048e89ff82292972e638daf60bf1418cbb6d3089c729bd79582da385f769efa15b2082be267b768bb9e14fd144c6b8baefa6c7eb534551e182ebb3876529efeb96fcca94bb7cd110f5b159987a5973d2b5f39c44c5de02e68b9b200893c234e181502142229d6f85829a6aaf6d29d0686568e927dbf8b4613f37fc293f02913382a9db028fe53b342597f05b9c7b3ea6bf5c4779241562aea9e44e1f3d203a0a7c435f7c225bbb865cbfff19948e24baf0318f17a7e6d1",
+			"headers": {
+				"authorization": "${headerToken}",
+				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Length": "29",
+				"Host": "sterling-services-int.auth.us-east-1.amazoncognito.com",
+				"Accept": "*/*",
+				"Accept-Encoding": "gzip, deflate, br",
+				"Cookie": "XSRF-TOKEN=5eaa86a7-1fc0-4047-b788-0576ed6201c5"
+			}
+		},
+		"baseURI": "https://us-nationwide.backgroundcheck.com/v1",
+		"healthURL": "https://us-nationwide.backgroundcheck.com/v1/health",
+		"healthDeepURL": "https://us-nationwide.backgroundcheck.com/v1/health?deep=true"
+	}
+}
