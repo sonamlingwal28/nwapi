@@ -1,19 +1,19 @@
 pipeline {
-
   //agent none
   agent
             {
                 docker
                 {
                     args '-e HOME=/tmp'
-                    image 'node:12-alpine'
+                    image 'node:17-alpine'
                     registryUrl 'https://repo.dev.backgroundcheck.com:8083'
                 } 
             }
 
   parameters {
-    booleanParam defaultValue: false, description: 'Run extra debug steps', name: 'DEBUG'
-    choice(name: 'ENVIRONMENT', choices: ['INT', 'PRD'], description: 'Environment to test')
+    booleanParam defaultValue: true, description: 'Run extra debug steps', name: 'DEBUG'
+    choice(name: 'ENVIRONMENT', choices: ['INT', 'PRE'], description: 'Please select Environment to run the test in')
+    choice(name: 'WORKFLOW', choices: ['VERIFIED-US-CRIMINAL', 'ALL', 'VERIFIED-US-OFFENDER','NON-VERIFIED-US-ARRESTS','NON-VERIFIED-US-NATCRIM'], description: 'NWAPI workflow to be tested')
     string(name: 'STATUS_EMAIL', defaultValue: "Sreekanth.Chandrasekaran@sterlingcheck.com", description: 'Enter comma-seperated valid email ids to recieve execution status notification')
   }
 
@@ -26,6 +26,7 @@ pipeline {
           echo "Job name='${env.JOB_NAME}'"
           echo "Build number='${env.BUILD_NUMBER}'"
           echo "Env = '${params.ENVIRONMENT}'"
+          echo "Workflow = '${params.WORKFLOW}'"
         }
       }
     }
@@ -34,16 +35,20 @@ pipeline {
         expression { params.ENVIRONMENT != '' }
       }
       options {
-        withAWS(role:'jenkins-deployment-role', roleAccount: '294258066905', region:'us-east-1', duration: 3600, roleSessionName: 'eMON-E2E')
+        withAWS(role:'jenkins-testexecution-role', roleAccount: '294258066905', region:'us-east-1', duration: 3600, roleSessionName: 'eMON-E2E')
       }
       steps {
         script {
-
           dir('test-api/__tests__') {
-      echo "'${env.PATH}'"
-    sh "npm install"
-    sh "npm run test:DEV"
-                    } 
+          echo "'${env.PATH}'"
+          sh "npm install"
+          sh "chmod +x -R ${env.WORKSPACE}"
+          if(params.DEBUG == false){
+          sh "npm run test:'${params.ENVIRONMENT}'-'${params.WORKFLOW}'"
+          }else{
+          sh "npm run test:'${params.ENVIRONMENT}'-'${params.WORKFLOW}'-DEBUG"
+          }
+          } 
           //execE2Etest('')
           
 
@@ -55,6 +60,7 @@ pipeline {
   post {
     always {
       publishExecutionReport("test-report.html", "Report Detail")
+      publishExecutionReport("E2E-Testing.html", "Report Summary")
       mail to: "${params.STATUS_EMAIL}",
           subject: "Jenkins Build ${currentBuild.currentResult}: NW API Test results",
           body: "Build no: ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}\nExecution Report published at: ${env.BUILD_URL}ExecutionReport\n\n\nCheers,\nAutomation Team"
@@ -67,7 +73,7 @@ def execE2Etest(){
     dir('test-api/__tests__') {
       echo "'${env.PATH}'"
     sh "npm install"
-    sh "npm run test:INT"
+    sh "npm run test:DEV"
                     }    
   }
   catch (Exception e) {
@@ -149,7 +155,7 @@ class ContextSettings implements Serializable {
 
     ContextSettings(env) {
         this.branchName                 = env.BRANCH_NAME.replaceAll('/', '-')
-        this.application                = "NW API"
+        this.application                = "NWAPI"
         this.version                    = "v1"
         this.applicationVersion         = "${this.branchName}-${env.BUILD_NUMBER}"
         this.changeSetName              = "${this.branchName}-${env.BUILD_NUMBER}".replaceAll("\\.", '-')
@@ -169,4 +175,3 @@ class ContextSettings implements Serializable {
         this.environments = settingsYaml["feature"].environments
     }
 
-}
