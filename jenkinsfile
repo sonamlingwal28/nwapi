@@ -13,7 +13,7 @@ pipeline {
   parameters {
     booleanParam defaultValue: true, description: 'Run extra debug steps', name: 'DEBUG'
     choice(name: 'ENVIRONMENT', choices: ['INT', 'PRE'], description: 'Please select Environment to run the test in')
-    choice(name: 'WORKFLOW', choices: ['VERIFIED-US-CRIMINAL', 'ALL', 'VERIFIED-US-OFFENDER','NON-VERIFIED-US-ARRESTS','NON-VERIFIED-US-NATCRIM'], description: 'NWAPI workflow to be tested')
+    choice(name: 'WORKFLOW', choices: ['VERIFIED-US-CRIMINAL', 'ALL', 'VERIFIED-US-OFFENDER','NON-VERIFIED-US-ARRESTS','NON-VERIFIED-US-NATCRIM'], description: 'EMON workflow to be tested')
     string(name: 'STATUS_EMAIL', defaultValue: "Sreekanth.Chandrasekaran@sterlingcheck.com", description: 'Enter comma-seperated valid email ids to recieve execution status notification')
   }
 
@@ -62,7 +62,7 @@ pipeline {
       publishExecutionReport("test-report.html", "Report Detail")
       publishExecutionReport("E2E-Testing.html", "Report Summary")
       mail to: "${params.STATUS_EMAIL}",
-          subject: "Jenkins Build ${currentBuild.currentResult}: NW API Test results",
+          subject: "Jenkins Build ${currentBuild.currentResult}: eMON Test results",
           body: "Build no: ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}\nExecution Report published at: ${env.BUILD_URL}ExecutionReport\n\n\nCheers,\nAutomation Team"
     }
   }
@@ -73,7 +73,7 @@ def execE2Etest(){
     dir('test-api/__tests__') {
       echo "'${env.PATH}'"
     sh "npm install"
-    sh "npm run test:DEV"
+    sh "npm run test:INT"
                     }    
   }
   catch (Exception e) {
@@ -155,7 +155,7 @@ class ContextSettings implements Serializable {
 
     ContextSettings(env) {
         this.branchName                 = env.BRANCH_NAME.replaceAll('/', '-')
-        this.application                = "NWAPI"
+        this.application                = "emon"
         this.version                    = "v1"
         this.applicationVersion         = "${this.branchName}-${env.BUILD_NUMBER}"
         this.changeSetName              = "${this.branchName}-${env.BUILD_NUMBER}".replaceAll("\\.", '-')
