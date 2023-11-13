@@ -1,0 +1,172 @@
+pipeline {
+
+  //agent none
+  agent
+            {
+                docker
+                {
+                    args '-e HOME=/tmp'
+                    image 'node:12-alpine'
+                    registryUrl 'https://repo.dev.backgroundcheck.com:8083'
+                } 
+            }
+
+  parameters {
+    booleanParam defaultValue: false, description: 'Run extra debug steps', name: 'DEBUG'
+    choice(name: 'ENVIRONMENT', choices: ['INT', 'PRD'], description: 'Environment to test')
+    string(name: 'STATUS_EMAIL', defaultValue: "Sreekanth.Chandrasekaran@sterlingcheck.com", description: 'Enter comma-seperated valid email ids to recieve execution status notification')
+  }
+
+  stages {
+  stage('Environment Info') {
+      steps { 
+        script {
+          echo "Environment='${env}'"
+          echo "Branch name='${env.BRANCH_NAME}'"
+          echo "Job name='${env.JOB_NAME}'"
+          echo "Build number='${env.BUILD_NUMBER}'"
+          echo "Env = '${params.ENVIRONMENT}'"
+        }
+      }
+    }
+  stage('Test Execution') {
+      when {
+        expression { params.ENVIRONMENT != '' }
+      }
+      options {
+        withAWS(role:'jenkins-deployment-role', roleAccount: '294258066905', region:'us-east-1', duration: 3600, roleSessionName: 'eMON-E2E')
+      }
+      steps {
+        script {
+
+          dir('test-api/__tests__') {
+      echo "'${env.PATH}'"
+    sh "npm install"
+    sh "npm run test:INT"
+                    } 
+          //execE2Etest('')
+          
+
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      publishExecutionReport("test-report.html", "Report Detail")
+      mail to: "${params.STATUS_EMAIL}",
+          subject: "Jenkins Build ${currentBuild.currentResult}: eMON Test results",
+          body: "Build no: ${env.BUILD_NUMBER}\nMore info at: ${env.BUILD_URL}\nExecution Report published at: ${env.BUILD_URL}ExecutionReport\n\n\nCheers,\nAutomation Team"
+    }
+  }
+}
+
+def execE2Etest(){
+  try {
+    dir('test-api/__tests__') {
+      echo "'${env.PATH}'"
+    sh "npm install"
+    sh "npm run test:INT"
+                    }    
+  }
+  catch (Exception e) {
+    error("E2E Test Cases Failed: ${e.getMessage()}")
+  }
+  finally{
+    publishExecutionReport("test-report.html", "Report Detail")
+    publishExecutionReport("E2E-Testing.html", "Report Summary")
+    // html.publish([reportName: "Report Detail", reportDir: "test-api", reportFiles: 'test-report.html'])
+    // html.publish([reportName: "Report Summary", reportDir: "test-api", reportFiles: 'E2E-report.html'])   
+  }
+}
+
+def publishExecutionReport(reportFiles, reportName) {
+  publishHTML(target: [
+              allowMissing: false,
+              alwaysLinkToLastBuild: false,
+              keepAll: true,
+              reportDir: 'test-api',
+              reportFiles: reportFiles,
+              reportName: reportName
+            ])
+}
+// def execE2Etest(env, context) {
+//     try {
+//         withAWS(role: context.jenkinsRole, roleAccount: context.accountNumber, region: context.region, duration: 3600, roleSessionName: "${context.application}-End to End") {
+//             def buildimage = docker.image("build-linux/node:12-alpine")
+//             buildimage.inside() {
+//                 //println env.PATH
+//                 withEnv(["EndpointVariable=${context.basePath}","npm_config_cache=npm-cache","HOME=."]) {
+//                     dir("test-api") {
+//                         sh "npm install"
+//                         sh "npm run test:${env}"
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     catch (Exception e) {
+//         println "End to End Test cases failed - " + e.getMessage()
+//         error("End to End Test Cases Failed ...")
+//     }
+//     finally {
+//         html.publish([reportName: "Report Detail - ${context.environment}", reportDir: "test-api", reportFiles: 'test-report.html'])
+//         html.publish([reportName: "Report Summary - ${context.environment}", reportDir: "test-api", reportFiles: 'E2E-report.html'])        
+//     }
+// }
+
+class ContextSettings implements Serializable {
+    String branchName
+    String application
+    String version
+    String applicationVersion
+    String endpointConfig
+    String dotnetImage
+    String environment
+    String stage
+    String basePath
+    String apiGatewayStackName
+    String branchEnvironment
+    String publishRole
+    String jenkinsRole
+    String accountNumber
+    String requiresApproval
+    int approvalTimeoutValue
+    String approvalTimeoutUnit
+    String region
+    Boolean enableTerminationProtection
+    String billingMode
+    String authEnvironment
+    String blackboxProfile
+    String owner
+    String apiRegion
+    def environments
+    def regions
+    def settingsYaml
+    def artifactsAccount
+
+
+    ContextSettings(env) {
+        this.branchName                 = env.BRANCH_NAME.replaceAll('/', '-')
+        this.application                = "emon"
+        this.version                    = "v1"
+        this.applicationVersion         = "${this.branchName}-${env.BUILD_NUMBER}"
+        this.changeSetName              = "${this.branchName}-${env.BUILD_NUMBER}".replaceAll("\\.", '-')
+        this.buildImagesCredential      = "ecr:us-east-1:legacy-dev"
+        this.apiCodeZip                 = "outputs/api-lambda-package.zip"
+        this.dotnetImage                = "build-linux/dotnet:6.0"
+        this.mavenImage                 = "build-linux/maven:3.6-alpine"
+        this.publishRole                = "publish-artifacts-role"
+        this.jenkinsRole                = "jenkins-execution-role"
+    }
+
+    @NonCPS
+    def initSettings(settingsYaml) {
+        this.settingsYaml = settingsYaml
+        this.artifactsAccount =  settingsYaml.artifactsAccount
+        this.dockerRegistryUrl = "https://${this.artifactsAccount.accountNumber}.dkr.ecr.us-east-1.amazonaws.com"
+        this.environments = settingsYaml["feature"].environments
+    }
+
+}
